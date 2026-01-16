@@ -1,0 +1,101 @@
+-- RAW LUA FLASHLIGHT MODEL (CLIENT FE)
+
+local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
+
+local plr = Players.LocalPlayer
+local char = plr.Character or plr.CharacterAdded:Wait()
+
+------------------------------------------------
+-- 🌙 NIGHT + FOG
+------------------------------------------------
+pcall(function()
+    Lighting.ClockTime = 0
+    Lighting.Brightness = 1
+    Lighting.FogStart = 6
+    Lighting.FogEnd = 55
+    Lighting.FogColor = Color3.fromRGB(12,12,18)
+    Lighting.Ambient = Color3.fromRGB(18,18,22)
+    Lighting.OutdoorAmbient = Color3.fromRGB(35,35,45)
+
+    local atm = Instance.new("Atmosphere", Lighting)
+    atm.Density = 0.45
+    atm.Offset = 0.25
+    atm.Color = Color3.fromRGB(70,80,100)
+    atm.Decay = Color3.fromRGB(30,30,40)
+end)
+
+------------------------------------------------
+-- ✋ HAND
+------------------------------------------------
+local hand = char:FindFirstChild("RightHand") or char:FindFirstChild("Right Arm")
+if not hand then return end
+
+------------------------------------------------
+-- 🔦 FLASHLIGHT MODEL
+------------------------------------------------
+local model = Instance.new("Model")
+model.Name = "ClientFlashlight"
+model.Parent = char
+
+local handle = Instance.new("Part")
+handle.Size = Vector3.new(0.4,1.2,0.4)
+handle.Material = Enum.Material.Metal
+handle.Color = Color3.fromRGB(35,35,35)
+handle.CanCollide = false
+handle.Massless = true
+handle.Parent = model
+
+local head = Instance.new("Part")
+head.Size = Vector3.new(0.6,0.3,0.6)
+head.Material = Enum.Material.Metal
+head.Color = Color3.fromRGB(55,55,55)
+head.CanCollide = false
+head.Massless = true
+head.Parent = model
+
+local weld1 = Instance.new("WeldConstraint", handle)
+weld1.Part0 = handle
+weld1.Part1 = head
+head.CFrame = handle.CFrame * CFrame.new(0,0.75,0)
+
+------------------------------------------------
+-- 🔩 WELD TO HAND
+------------------------------------------------
+local weld = Instance.new("WeldConstraint", handle)
+weld.Part0 = hand
+weld.Part1 = handle
+
+handle.CFrame =
+    hand.CFrame *
+    CFrame.new(0,-0.6,0) *
+    CFrame.Angles(math.rad(90),0,0)
+
+------------------------------------------------
+-- 🔺 FLASHLIGHT CONE
+------------------------------------------------
+local spot = Instance.new("SpotLight")
+spot.Parent = head
+spot.Face = Enum.NormalId.Front
+spot.Angle = 30
+spot.Range = 65
+spot.Brightness = 6
+spot.Color = Color3.fromRGB(255,245,220)
+spot.Shadows = true
+spot.Enabled = true
+
+------------------------------------------------
+-- ⚡ FLICKER
+------------------------------------------------
+task.spawn(function()
+    while model.Parent do
+        if math.random() < 0.15 then
+            spot.Enabled = false
+            task.wait(math.random(5,15)/100)
+            spot.Enabled = true
+        end
+        spot.Brightness = 5 + math.random()*2
+        task.wait(math.random(8,18)/100)
+    end
+end)
+
